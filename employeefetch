@@ -1,0 +1,654 @@
+package com.Employee.Controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import com.Employee.Model.Employee;
+import com.Employee.Service.EmployeeService;
+
+@Controller
+@RequestMapping("/employees")
+public class EmployeeController {
+
+	 @Autowired
+	    private EmployeeService employeeService;
+
+	    @GetMapping("/allemployees")
+	    public String getAllEmployees(Model model) {
+	        List<Employee> employees = employeeService.getAllEmployees();
+	        model.addAttribute("employees", employees);
+	        return "employee";
+	    }
+	    
+	    @GetMapping("/byexperience/{experience}")
+	    public String getByExperience(@PathVariable int experience ,Model model) {
+	    	List<Employee> employees =employeeService.getByExperience(experience);
+	    	model.addAttribute("employees", employees);
+	    	return "employee";
+	    	
+	    }
+	    
+	    @GetMapping("/bysalary/{salary}")
+	    public String getBySalary(@PathVariable double salary,Model model) {
+	        List<Employee> employees = employeeService.getBySalary(salary);
+	        model.addAttribute("employees", employees);
+	        return "employee";
+	    }
+	    
+	    @GetMapping("/bydepartment/{departmentId}")
+	    public String getByDepartment(@PathVariable int departmentId, Model model) {
+	        List<Employee> employees = employeeService.getByDepartment(departmentId);
+	        model.addAttribute("employees", employees);
+	        return "employee";
+	    }
+ 
+}
+============================================================================================================================================================================================
+package com.Employee.Dao;
+
+import java.util.List;
+
+import com.Employee.Model.Employee;
+
+public interface EmployeeDao {
+
+	List<Employee> getAllEmployees();
+
+	List<Employee> getByExperience(int experience);
+	
+	List<Employee> getBySalary(double salary);
+
+	List<Employee> getByDepartment(int departmentId);
+
+}
+=====================================================================================================================================================================================
+package com.Employee.Dao;
+
+import java.util.List;
+
+import javax.transaction.Transactional;
+
+import org.hibernate.Criteria;
+import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Restrictions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import com.Employee.Model.Employee;
+
+@Repository
+public class EmployeeDaoImpl implements EmployeeDao {
+
+	 @Autowired
+	    private SessionFactory sessionFactory;
+
+	 @Override
+	 @Transactional
+	public List<Employee> getAllEmployees() {
+		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Employee.class);
+        return criteria.list();
+	}
+
+	@Override
+	public List<Employee> getBySalary(double salary) {
+		 Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Employee.class);
+		 criteria.add(Restrictions.gt("empSalary", salary));
+		 
+		return criteria.list();
+	}
+
+	@Override
+	public List<Employee> getByExperience(int experience) {
+		 Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Employee.class);
+	     criteria.add(Restrictions.gt("empExperience", experience));
+	     return criteria.list();
+		
+	}
+
+	@Override
+	public List<Employee> getByDepartment(int departmentId) {
+		 Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Employee.class);
+		    criteria.createAlias("department", "d");
+		    criteria.add(Restrictions.eq("d.dprtId", departmentId));
+		    return criteria.list();
+	}
+
+}
+========================================================================================================================================================================================
+package com.Employee.Service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Repository;
+
+import com.Employee.Model.Employee;
+
+
+
+public interface EmployeeService {
+
+	List<Employee> getAllEmployees();
+
+
+	List<Employee> getBySalary(double salary);
+
+	List<Employee> getByExperience(int experience);
+
+
+	List<Employee> getByDepartment(int departmentId);
+}
+========================================================================================================================================================================================
+package com.Employee.Service;
+
+import java.util.List;
+
+import javax.transaction.Transactional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.Employee.Dao.EmployeeDao;
+import com.Employee.Model.Employee;
+
+@Service
+@Transactional
+public class EmployeeServiceImpl implements EmployeeService {
+	
+	@Autowired
+	private EmployeeDao employeeDao;
+
+	@Override
+	public List<Employee> getAllEmployees() {
+		List<Employee> employees= employeeDao.getAllEmployees();
+//		printEmployeeDetails(employees);
+//		return employees;
+		for (Employee employee : employees) {
+			System.out.println("Employee ID: " + employee.getEmpId());
+			System.out.println("Employee Name: " + employee.getEmpName());
+		    System.out.println("Employee Salary: " + employee.getEmpSalary());
+			System.out.println("Employee Experience: " + employee.getEmpExperience());
+			System.out.println("Department Name: " + employee.getDepartment().getDprtId());
+			System.out.println("Department Name: " + employee.getDepartment().getDprtName());
+			System.out.println("--------------------------------------");
+		
+		}
+		return employees;
+	}
+
+	@Override
+	public List<Employee> getByExperience(int experience) {
+		List<Employee> employees = employeeDao.getByExperience(experience);
+//		printEmployeeDetails(employees);
+//		return employees;
+		for (Employee employee : employees) {
+			System.out.println("Employee ID: " + employee.getEmpId());
+			System.out.println("Employee Name: " + employee.getEmpName());
+		    System.out.println("Employee Salary: " + employee.getEmpSalary());
+			System.out.println("Employee Experience: " + employee.getEmpExperience());
+			System.out.println("Department Name: " + employee.getDepartment().getDprtId());
+			System.out.println("Department Name: " + employee.getDepartment().getDprtName());
+			System.out.println("--------------------------------------");
+			
+			
+		}
+		return employees;
+	}
+
+	@Override
+	public List<Employee> getBySalary(double salary){
+		List<Employee> employees= employeeDao.getBySalary(salary);
+		for(Employee employee :employees) {
+			System.out.println("Employee ID: " + employee.getEmpId());
+			System.out.println("Employee Name: " + employee.getEmpName());
+		    System.out.println("Employee Salary: " + employee.getEmpSalary());
+			System.out.println("Employee Experience: " + employee.getEmpExperience());
+			System.out.println("Department Name: " + employee.getDepartment().getDprtId());
+			System.out.println("Department Name: " + employee.getDepartment().getDprtName());
+			System.out.println("--------------------------------------");
+			
+		}
+		return employees;
+	}
+
+	@Override
+	public List<Employee> getByDepartment(int departmentId) {
+		
+		List<Employee> employees= employeeDao.getByDepartment(departmentId);
+		
+		for(Employee employee :employees) {
+			System.out.println("Employee ID: " + employee.getEmpId());
+			System.out.println("Employee Name: " + employee.getEmpName());
+		    System.out.println("Employee Salary: " + employee.getEmpSalary());
+			System.out.println("Employee Experience: " + employee.getEmpExperience());
+			System.out.println("Department Name: " + employee.getDepartment().getDprtId());
+			System.out.println("Department Name: " + employee.getDepartment().getDprtName());
+			System.out.println("--------------------------------------");
+			
+		}
+		return employees;
+	}
+	
+//	
+//	private void printEmployeeDetails(List<Employee> employees) {
+//		for (Employee employee : employees) {
+//			System.out.println("Employee ID: " + employee.getEmpId());
+//			System.out.println("Employee Name: " + employee.getEmpName());
+//			System.out.println("Employee Salary: " + employee.getEmpSalary());
+//			System.out.println("Employee Experience: " + employee.getEmpExperience());
+//			System.out.println("Department Name: " + employee.getDepartment().getDprtId());
+//			System.out.println("Department Name: " + employee.getDepartment().getDprtName());
+//			System.out.println("--------------------------------------");
+//}
+//	}
+	
+}	
+
+========================================================================================================================================================================================
+package com.Employee.Model;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+import lombok.Data;
+
+@Entity
+@Data
+@Table(name="Department")
+public class Department {
+	 
+	
+	   @Id
+	   @Column(name="dprt_id")
+	    private int dprtId;
+	   @Column(name="dprt_name")
+	    private String dprtName;
+	
+	 
+	   public Department() {
+		super();
+	}
+	public Department(int dprtId, String dprtName) {
+		super();
+		this.dprtId = dprtId;
+		this.dprtName = dprtName;
+	}
+	public int getDprtId() {
+		return dprtId;
+	}
+	public void setDprtId(int dprtId) {
+		this.dprtId = dprtId;
+	}
+	public String getDprtName() {
+		return dprtName;
+	}
+	public void setDprtName(String dprtName) {
+		this.dprtName = dprtName;
+	}
+	@Override
+	public String toString() {
+		return "Department [dprtId=" + dprtId + ", dprtName=" + dprtName + "]";
+	}
+
+}
+========================================================================================================================================================================================
+package com.Employee.Model;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+import lombok.Data;
+
+@Entity
+@Data
+@Table(name="Employee")
+public class Employee {
+	
+	  @Id
+	  @Column(name="emp_id")
+	    private int empId;
+	  @Column(name="emp_name")
+	    private String empName;
+	  @Column(name="emp_salary")
+	    private double empSalary;
+	  @Column(name="emp_experience")
+	    private int empExperience;
+
+	    @ManyToOne
+	    @JoinColumn(name = "dprt_id")
+	    private Department department;
+	    
+	    
+	    
+
+		public Employee() {
+			super();
+		}
+
+		public Employee(int empId, String empName, double empSalary, int empExperience, Department department) {
+			super();
+			this.empId = empId;
+			this.empName = empName;
+			this.empSalary = empSalary;
+			this.empExperience = empExperience;
+			this.department = department;
+		}
+
+		public int getEmpId() {
+			return empId;
+		}
+
+		public void setEmpId(int empId) {
+			this.empId = empId;
+		}
+
+		public String getEmpName() {
+			return empName;
+		}
+
+		public void setEmpName(String empName) {
+			this.empName = empName;
+		}
+
+		public double getEmpSalary() {
+			return empSalary;
+		}
+
+		public void setEmpSalary(double empSalary) {
+			this.empSalary = empSalary;
+		}
+
+		public int getEmpExperience() {
+			return empExperience;
+		}
+
+		public void setEmpExperience(int empExperience) {
+			this.empExperience = empExperience;
+		}
+
+		public Department getDepartment() {
+			return department;
+		}
+
+		public void setDepartment(Department department) {
+			this.department = department;
+		}
+
+		@Override
+		public String toString() {
+			return "Employee [empId=" + empId + ", empName=" + empName + ", empSalary=" + empSalary + ", empExperience="
+					+ empExperience + ", department=" + department + "]";
+		}
+}
+===========================================================================================================================================================================================
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+
+<html>
+<head>
+    <title>Employee List</title>
+</head>
+<body>
+    <h1>Employee List</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Salary</th>
+                <th>Experience</th>
+                <th>DprtID</th>
+                <th>Department</th>
+                
+            </tr>
+        </thead>
+        <tbody>
+            <c:forEach items="${employees}" var="employee">
+                <tr>
+                    <td>${employee.empId}</td>
+                    <td>${employee.empName}</td>
+                    <td>${employee.empSalary}</td>
+                    <td>${employee.empExperience}</td>
+                     <td>${employee.department.dprtId}</td>
+                    <td>${employee.department.dprtName}</td>
+                </tr>
+            </c:forEach>
+        </tbody>
+    </table>
+    
+     <!--   <h2>Retrieve Employees by Department:</h2>
+    <form action="/employees/employeesByDepartment" method="get">
+        <label for="departmentId">Department ID:</label>
+        <input type="text" id="departmentId" name="departmentId">
+        <button type="submit">Retrieve</button>
+    </form>
+
+    <h2>Retrieve Employees by Salary:</h2>
+    <form action="/employees/employeesBySalary" method="get">
+        <label for="salary">Salary:</label>
+        <input type="text" id="salary" name="salary">
+        <button type="submit">Retrieve</button>
+    </form>
+
+    <h2>Retrieve Employees by Experience:</h2>
+    <form action="/employees/byexperience" method="get">
+        <label for="experience">Experience:</label>
+        <input type="text" id="experience" name="experience">
+        <button type="submit">Retrieve</button>
+    </form> -->
+    
+</body>
+</html>
+===============================================================================================================================================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://java.sun.com/xml/ns/javaee"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+         id="WebApp_ID" version="3.0">
+    <display-name>EmployeeFetch</display-name>
+
+    <!-- Configure Spring MVC DispatcherServlet -->
+    <servlet>
+        <servlet-name>dispatcher</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>dispatcher</servlet-name>
+        <url-pattern>/</url-pattern>
+    </servlet-mapping>
+</web-app>
+==============================================================================================================================================================================
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+  http://www.springframework.org/schema/beans/spring-beans.xsd
+  http://www.springframework.org/schema/aop 
+  http://www.springframework.org/schema/aop/spring-aop.xsd
+  http://www.springframework.org/schema/context 
+  http://www.springframework.org/schema/context/spring-context.xsd
+  http://www.springframework.org/schema/tx 
+  http://www.springframework.org/schema/tx/spring-tx.xsd
+  http://www.springframework.org/schema/mvc 
+  http://www.springframework.org/schema/mvc/spring-mvc.xsd
+  ">
+
+	<context:component-scan base-package="com.Employee.Controller,com.Employee.Service,com.Employee.Dao" />
+
+
+
+	<tx:annotation-driven />
+	<mvc:annotation-driven></mvc:annotation-driven>
+	
+	<mvc:resources location="/WEB-INF/resources/"
+		mapping="/resources/**" />
+	<mvc:annotation-driven></mvc:annotation-driven>
+
+
+	<!-- View Resolver -->
+	<bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/views/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+
+
+	<!-- data source -->
+
+	<bean
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource"
+		name="ds">
+
+		<property name="driverClassName"
+			value="com.mysql.jdbc.Driver" />
+		<property name="url"
+			value="jdbc:mysql://localhost:3306/employee" />
+		<property name="username" value="root" />
+		<property name="password" value="1234" />
+
+	</bean>
+
+
+	<bean
+		class="org.springframework.orm.hibernate5.LocalSessionFactoryBean"
+		name="factory">
+
+		<!-- data source -->
+		<property name="dataSource" ref="ds"></property>
+
+		<!-- hibernate properties -->
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+			</props>
+		</property>
+
+		<!-- annotated classes -->
+		<property name="annotatedClasses">
+			<list>
+					<value>com.Employee.Model.Employee</value>
+					<value>com.Employee.Model.Department</value>
+			</list>
+		</property>
+
+	</bean>
+
+	<bean class="org.springframework.orm.hibernate5.HibernateTemplate"
+		name="hibernateTemplate">
+		<property name="sessionFactory" ref="factory"></property>
+
+	</bean>
+
+	<bean
+		class="org.springframework.orm.hibernate5.HibernateTransactionManager"
+		name="transactionManager">
+		<property name="sessionFactory" ref="factory"></property>
+	</bean>
+</beans>
+============================================================================================================================================================================================
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.employee</groupId>
+  <artifactId>EmployeeFetch</artifactId>
+  <packaging>war</packaging>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>EmployeeFetch Maven Webapp</name>
+  <url>http://maven.apache.org</url>
+  <dependencies>
+	  
+	   <!-- Spring MVC dependencies -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <version>5.3.10</version>
+        </dependency>
+
+        <!-- Hibernate dependencies -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>5.5.6.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>7.0.1.Final</version>
+        </dependency>
+
+        <!-- MySQL Connector/J dependency -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.27</version>
+        </dependency>
+         <!-- Lombok dependency -->
+    <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <version>1.18.22</version>
+        <scope>provided</scope>
+    </dependency>
+    <dependency>
+    <groupId>javax.servlet</groupId>
+    <artifactId>javax.servlet-api</artifactId>
+    <version>4.0.1</version>
+   <!-- <scope>provided</scope> -->
+</dependency>
+
+<!-- Spring ORM -->
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-orm</artifactId>
+    <version>5.3.9</version>
+</dependency>
+
+<dependency>
+    <groupId>javax.validation</groupId>
+    <artifactId>validation-api</artifactId>
+    <version>2.0.1.Final</version>
+</dependency>
+
+<dependency>
+    <groupId>javax.servlet</groupId>
+    <artifactId>jstl</artifactId>
+    <version>1.2</version>
+</dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  <build>
+    <finalName>EmployeeFetch</finalName>
+  </build>
+</project>
+
+
+
+
+
+
+
